@@ -1,7 +1,8 @@
 # Multi-threaded Flask Server for Real-time Data Processing
 
-## Introduction
-The Multi-threaded Flask Server for Real-time Data Processing is a robust solution developed by Nadolu Robert-Alexandru (334CB) to efficiently handle concurrent data requests while ensuring seamless real-time data processing. Leveraging advanced techniques such as thread pooling and task management, this server is capable of delivering high-performance data processing capabilities.
+
+### Introduction
+This project focuses on the development of a multi-threaded Flask server capable of real-time data processing. The server implementation utilizes advanced techniques such as thread pooling and efficient task management to handle concurrent data requests seamlessly.
 
 ## Implementation Details
 
