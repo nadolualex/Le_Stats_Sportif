@@ -1,47 +1,40 @@
-**Project Presentation: Multi-threaded Flask Server for Data Processing**
+# Multi-threaded Flask Server for Real-time Data Processing
 
-**Introduction:**
-The project involves the development of a multi-threaded Flask server aimed at efficiently processing data requests. Leveraging Flask, a micro web framework for Python, the objective is to build an application capable of handling various data processing tasks concurrently.
+### Introduction
+This project focuses on the development of a multi-threaded Flask server capable of real-time data processing. The server implementation utilizes advanced techniques such as thread pooling and efficient task management to handle concurrent data requests seamlessly.
 
-**Project Structure:**
-1. **Thread Pool Mechanism:**
-   - Implementation of a thread pool to manage concurrent execution of tasks.
-   - Utilization of a ThreadPool class to manage a fixed number of threads.
-   - Efficient processing of incoming requests using a TaskRunner class.
+### Implementation Details
 
-2. **Data Processing:**
-   - Loading and extracting information from a CSV file during server startup.
-   - Calculation of statistics requested at the request level.
-   - Various endpoints designed to cater to specific data processing tasks.
+#### ThreadPool Class
+- **Initialization (`__init__()`):** 
+  - Sets the number of threads based on specifications.
+  - Initializes a job queue (`job_queue`) and a dictionary (`job_id_dict`) to track job statuses.
+  - Initializes a `DataIngestor` instance for data processing functions.
 
-3. **Endpoints Implemented:**
-   - `/api/states_mean`: Calculate the mean of data values for each state over the entire time interval (2011 - 2022) and sort them in ascending order.
-   - `/api/state_mean`: Calculate the mean of data values for a specific state over the entire time interval (2011 - 2022).
-   - `/api/best5` and `/api/worst5`: Calculate the mean of data values for all states and return the top 5 or bottom 5 states.
-   - `/api/global_mean`: Calculate the global mean of data values over the entire time interval (2011 - 2022).
-   - Various other endpoints for different data processing tasks as specified in the requirements.
+- **Adding Tasks (`add_task()`):**
+  - Implements logic to add a job to the queue, including job ID, data, and question type.
+  - Initializes the `job_id_dict` with `None` values for result tracking.
 
-4. **Handling Requests:**
-   - Assigning a job ID to each request and queuing the job for processing.
-   - Asynchronous processing of jobs using a thread pool mechanism.
-   - Writing the result of each calculation to a file with the corresponding job ID.
+#### TaskRunner Class
+- **Initialization (`__init__()`):**
+  - Accepts parameters such as job queue, thread pool instance, job ID dictionary, and data ingestor instance.
+  - Utilizes a lock mechanism for synchronization during dictionary updates.
 
-5. **Graceful Shutdown:**
-   - Implementation of a `/api/graceful_shutdown` endpoint to gracefully shut down the server.
-   - No longer accepting new requests, finishing processing existing requests, and then shutting down.
+- **Task Execution (`run()`):**
+  - Threads process jobs by waiting for tasks from the job queue.
+  - Upon extraction, the thread identifies the question type and invokes the corresponding function from `DataIngestor`.
+  - Updates the `job_id_dict` with the result and utilizes locks for thread safety.
+  - Upon completion, results are written to the `results` directory with the corresponding job ID.
 
-6. **Monitoring and Management:**
-   - Endpoints such as `/api/jobs` and `/api/num_jobs` to monitor job status and count.
-   - `/api/get_results/<job_id>` endpoint to retrieve results of processed jobs.
+#### routes.py File
+- **Endpoint Implementation:**
+  - Implements the `get_response(job_id)` method to extract results from the `job_id_dict`.
+  - Checks for validity and returns appropriate messages or processed results.
+  - Subsequent functions increment job IDs and enqueue tasks, adding them to the `job_id_dict`.
 
-**Flask Framework:**
-Flask, an open-source micro web framework, is utilized for building the server application. Its minimalist and flexible nature allows for rapid development of web applications using Python. Flask provides essential tools for URL routing, request handling, session management, templating, and cookie management.
-
-**Installation and Setup:**
-- Clone the project repository.
-- Create and activate a virtual environment.
-- Install the required dependencies using the provided `requirements.txt`.
-- Start the Flask server.
-
-**Conclusion:**
-The project showcases the development of a robust multi-threaded Flask server capable of handling complex data processing tasks efficiently. By leveraging Flask's simplicity and flexibility along with multi-threading capabilities, a scalable solution for processing data requests in real-time is achieved.
+#### DataIngestor Class
+- **Data Processing Logic:**
+  - Reads data from the CSV file and extracts relevant columns.
+  - Implements various data processing methods, each following a similar logic pattern:
+    - Extracts question-specific data.
+    - Processes the data and returns the resulting dictionary.
