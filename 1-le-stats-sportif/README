@@ -1,0 +1,34 @@
+# Nadolu Robert-Alexandru 334CB
+
+Pentru realizarea temei, am implementat mai intai logica de threadpool in interiorul clasei **ThreadPool**.
+
+## Clasa **ThreadPool**
+
+### Metoda `__init__()`
+In constructorul `__init__()`, am setat numarul de thread-uri conform specificatiilor din enuntul temei, pentru a nu depasi limita impusa. Am initializat o coada de job-uri `job_queue`, un dictionar de id-uri `job_id_dict` in care, initial, setez `result` la `None`, pentru a-mi putea da seama cand un thread este in executie. De asemenea, am initializat o instanta a clasei `DataIngestor` pentru a putea apela functiile de prelucrare aferente fiecarui request.
+
+### Metoda `add_task()`
+In functia `add_task()`, am implementat atat logica de adaugare a unui job in coada (in care am inclus mai multe informatii, precum `job_id`, `data`, `tipul intrebarii` pentru simplitate), cat si initializarea dictionarului `job_id_dict` cu parametrul `result`, care este initializat cu `None` in `routes.py`.
+
+## Clasa **TaskRunner**
+
+### Metoda `__init__()`
+In constructorul `__init__()`, am plasat patru parametri:
+
+- `job_queue`: coada unde sunt adaugate job-urile
+- `thread_pool`: instanta `ThreadPool` care contine lista de thread-uri
+- `job_id_dict`: dictionar in care fiecare cheie este `job_id`, iar valoarea asociata este rezultatul functiei aferente tipului de request
+- `data_ingestor`: instanta `DataIngestor` care contine functiile de procesare a datelor
+
+De asemenea, am folosit un `lock()` pentru a asigura sincronizarea la actualizarea dictionarului `job_id_dict`.
+
+### Metoda `run()`
+In metoda `run()`, un thread proceseaza job-uri astfel: intr-un `while`, thread-ul asteapta un nou job din `job_queue`. Cand il extrage, verifica tipul intrebarii si apeleaza functia corespunzatoare din `DataIngestor`, pe care o stocheaza intr-un `result`. Dictionarul de `job_id`-uri este apoi actualizat, utilizand `lock` pentru sincronizarea corecta intre thread-uri. Am folosit, de asemenea, un dictionar `method_mapping` pentru a elimina repetitia structurilor `if-else`. La final, daca nu mai avem job-uri in coada, executia se opreste. Rezultatul se scrie in directorul `results`, intr-un fisier cu numele conform numarului `job_id`.
+
+## Fisierul **routes.py**
+
+In fisierul `routes.py`, am implementat mai intai metoda `get_response(job_id)`. Extrage rezultatul (valoarea din dictionarul `job_id_dict`) si verifica daca este valid sau `None`, intorcand mesajele aferente. Altfel, intorc statusul `done` si rezultatul procesat. In urmatoarele functii, cresc `job_id`-ul si adaug in coada `job_id`-ul, `request`-ul, `rezultatul None` si `state`-ul (daca am stat in cerere) cu metoda `add_task`, in care adaug si `job_id`-ul in dictionar.
+
+## Clasa **DataIngestor**
+
+Am citit din fisierul CSV si am salvat in `self.data` doar coloanele care ne intereseaza. In continuare, am implementat fiecare functionalitate a metodelor care prelucreaza datele si intorc rezultatele aferente. Fiecare metoda are cam aceeasi logica: initial stochez in `question_data` doar datele intrebarii pe care o primesc, ca mai apoi sa le prelucrez si sa intorc dictionarul rezultat.
